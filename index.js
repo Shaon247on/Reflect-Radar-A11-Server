@@ -59,6 +59,27 @@ async function run() {
             res.send(result)
         })
 
+        //get single recommendation doc using id
+
+        
+        app.get('/recommend/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await recommendationCollection.findOne(query)
+            res.send(result)
+        })
+
+
+        //get single recommendation doc using postid
+
+        
+        app.get('/recommends/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { postId: id }
+            const result = await recommendationCollection.find(query).toArray()
+            res.send(result)
+        })
+
 
         app.get('/recommend', async (req, res) => {
             const result = await recommendationCollection.find().toArray()
