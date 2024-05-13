@@ -9,12 +9,12 @@ const port = process.env.PORT || 5000
 
 app.use(
     cors({
-      origin: [
-        "http://localhost:5173"
-      ],
-      credentials: true,
+        origin: [
+            "http://localhost:5173"
+        ],
+        credentials: true,
     })
-  );
+);
 app.use(express.json())
 
 //BattleField
@@ -43,7 +43,7 @@ async function run() {
         const queriesCollection = client.db('BattleField').collection('Queries')
         const recommendationCollection = client.db('BattleField').collection('Recommendation')
 
-        
+
 
         app.get('/queries', async (req, res) => {
             const result = await queriesCollection.find().toArray()
@@ -59,9 +59,27 @@ async function run() {
             res.send(result)
         })
 
+
+        // get all queries for particular user by email
+
+        app.get('/queries/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { UserEmail: email }
+            const result = await queriesCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+        app.post('/queries', async(req,res)=>{
+            const data = req.body
+            const result = await queriesCollection.insertOne(data)
+            res.send(result)
+        })
+
+
         //get single recommendation doc using id
 
-        
+
         app.get('/recommend/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
@@ -70,9 +88,9 @@ async function run() {
         })
 
 
-        //get single recommendation doc using postid
+        //get single recommendation doc using post id
 
-        
+
         app.get('/recommends/:id', async (req, res) => {
             const id = req.params.id
             const query = { postId: id }
@@ -86,41 +104,31 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/recommend/:id', async (req, res)=>{
+        app.get('/recommend/:id', async (req, res) => {
             const id = req.params.id
         })
 
         //save a recommendation
 
-        app.post('/recommend', async (req, res)=>{
+        app.post('/recommend', async (req, res) => {
             const recData = req.body
-            console.log(recData);            
+            console.log(recData);
             const result = await recommendationCollection.insertOne(recData)
             res.send(result)
-            
+
         })
 
-        
 
 
-        // get all queries for particular user by email
-
-        // app.get('/queries/:email', async (req, res) => {
-        //     const email = req.params.email
-        //     const query = { UserEmail: email }
-        //     const result = await queriesCollection.find(query).toArray()
-        //     res.send(result)
-        // })
 
 
-        
 
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
-        
+
 
     } finally {
         // Ensures that the client will close when you finish/error
