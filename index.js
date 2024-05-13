@@ -69,12 +69,37 @@ async function run() {
             res.send(result)
         })
 
+        // delete a query delete from mongoDB
+        app.delete('/query/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id:new ObjectId(id)}
+            const result = await queriesCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        // update a query in mongoDB
+
+        app.put('/query/:id', async(req, res)=>{
+            const id = req.params.id
+            const queryData = req.body 
+            const query = { _id:new ObjectId(id)}
+            const option = {upsert: true}
+            const updateDoc ={
+                $set: {
+                    ...queryData 
+                }
+            }
+            const result = await queriesCollection.updateOne(query, updateDoc, option)
+            res.send(result)
+        })
 
         app.post('/queries', async(req,res)=>{
             const data = req.body
             const result = await queriesCollection.insertOne(data)
             res.send(result)
         })
+
+
 
 
         //get single recommendation doc using id
