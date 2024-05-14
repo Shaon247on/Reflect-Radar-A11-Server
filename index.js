@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
+require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -10,21 +11,20 @@ const port = process.env.PORT || 5000
 app.use(
     cors({
         origin: [
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://assignment-11-battlefield.web.app",
+            'https://assignment-11-battlefield.firebaseapp.com'
         ],
         credentials: true,
     })
 );
 app.use(express.json())
 
-//BattleField
-//Nkec8TDo9pNjEmWk
-
 
 //mongodb Connection
 
 
-const uri = "mongodb+srv://BattleField:Nkec8TDo9pNjEmWk@cluster0.k4uag68.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.k4uag68.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -39,7 +39,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         const queriesCollection = client.db('BattleField').collection('Queries')
         const recommendationCollection = client.db('BattleField').collection('Recommendation')
 
@@ -72,28 +72,28 @@ async function run() {
         // delete a query delete from mongoDB
         app.delete('/query/:id', async (req, res) => {
             const id = req.params.id
-            const query = { _id:new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await queriesCollection.deleteOne(query)
             res.send(result)
         })
 
         // update a query in mongoDB
 
-        app.put('/query/:id', async(req, res)=>{
+        app.put('/query/:id', async (req, res) => {
             const id = req.params.id
-            const queryData = req.body 
-            const query = { _id:new ObjectId(id)}
-            const option = {upsert: true}
-            const updateDoc ={
+            const queryData = req.body
+            const query = { _id: new ObjectId(id) }
+            const option = { upsert: true }
+            const updateDoc = {
                 $set: {
-                    ...queryData 
+                    ...queryData
                 }
             }
             const result = await queriesCollection.updateOne(query, updateDoc, option)
             res.send(result)
         })
 
-        app.post('/queries', async(req,res)=>{
+        app.post('/queries', async (req, res) => {
             const data = req.body
             const result = await queriesCollection.insertOne(data)
             res.send(result)
@@ -112,6 +112,13 @@ async function run() {
             res.send(result)
         })
 
+        app.delete('/recommend/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await recommendationCollection.deleteOne(query)
+            res.send(result)
+        })
+
 
         //get single recommendation doc using post id
 
@@ -119,6 +126,25 @@ async function run() {
         app.get('/recommends/:id', async (req, res) => {
             const id = req.params.id
             const query = { postId: id }
+            const result = await recommendationCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        //get single recommendation doc by email for recommendation owner
+
+        app.get('/myRecommend/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await recommendationCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+        //get single recommendation doc by email for recommendation owner
+
+        app.get('/forRecommend/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { authorEmail: email }
             const result = await recommendationCollection.find(query).toArray()
             res.send(result)
         })
@@ -150,7 +176,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
 
