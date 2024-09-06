@@ -139,6 +139,27 @@ async function run() {
             res.send(result)
         })
 
+        // to increase the value of total recommendations dynamically
+
+        app.patch('/count', async (req, res) => {
+            const { id } = req.body
+            console.log('CounterID:', id);
+            const query = {
+                postId: id
+            }
+            const numberOfComment = await recommendationCollection.find(query).toArray()
+            const countInNumber = numberOfComment.length
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set:{
+                    recommendationCount:countInNumber
+                }
+            }
+            const result = await queriesCollection.updateOne(filter, updateDoc, options)
+
+        })
+
 
         //get single recommendation doc by email for recommendation owner
 
@@ -169,7 +190,7 @@ async function run() {
 
         })
 
-       
+
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
