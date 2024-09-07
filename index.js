@@ -46,9 +46,26 @@ async function run() {
 
 
         app.get('/queries', async (req, res) => {
-            const result = await queriesCollection.find().toArray()
-            res.send(result)
-        })
+            const { search, sort } = req.query
+            console.log('Search and sort options:', { search, sort })
+
+            const query = {}
+            let sortOrder = {}
+
+            if (search) {
+                query.ProductName = { $regex: search, $options: 'i' }
+            }
+
+            if (sort === 'asc') {
+                sortOrder.CurrentDateAndTime = -1
+            } else if (sort === 'desc') {
+                sortOrder.CurrentDateAndTime = 1;
+            }
+            
+            const data = await queriesCollection.find(query).sort(sortOrder).toArray()
+            res.send(data)
+
+        });
 
         //get single job doc using id
 
@@ -143,7 +160,7 @@ async function run() {
 
         app.patch('/count', async (req, res) => {
             const { id } = req.body
-            console.log('CounterID:', id);
+            // console.log('CounterID:', id);
             const query = {
                 postId: id
             }
@@ -152,8 +169,8 @@ async function run() {
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const updateDoc = {
-                $set:{
-                    recommendationCount:countInNumber
+                $set: {
+                    recommendationCount: countInNumber
                 }
             }
             const result = await queriesCollection.updateOne(filter, updateDoc, options)
@@ -184,7 +201,7 @@ async function run() {
 
         app.post('/recommend', async (req, res) => {
             const recData = req.body
-            console.log(recData);
+            // console.log(recData);
             const result = await recommendationCollection.insertOne(recData)
             res.send(result)
 
